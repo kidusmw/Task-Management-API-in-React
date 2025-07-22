@@ -27,7 +27,12 @@ class ProductApiService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData),
       });
-      if (!res.ok) throw new Error('Failed to create product');
+    // if (!res.ok) throw new Error('Failed to create product');
+       if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error("Error response:", error);
+        throw new Error(error.message || `Failed to create product: ${res.status}`);
+      }
       return await res.json();
     }
   
