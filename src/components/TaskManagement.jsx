@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useTasks } from '../hooks/useTasks';
-import TaskDetails from './TaskDetails';
-import TaskForm from './TaskForm';
 import TaskList from './TaskList';
+import TaskForm from './TaskForm';
+import TaskDetails from './TaskDetails';
 import Header from './layout/Header';
+import ProductManagement from './products/ProductManagement';
 
 const TaskManagement = () => {
   const {
@@ -16,6 +17,7 @@ const TaskManagement = () => {
     deleteTask,
   } = useTasks();
 
+  const [activeTab, setActiveTab] = useState('tasks');
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -80,40 +82,46 @@ const TaskManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header activeTab={activeTab} onTabChange={setActiveTab} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md">
-            {error}
-          </div>
-        )}
+        {activeTab === 'tasks' ? (
+          <>
+            {error && (
+              <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md">
+                {error}
+              </div>
+            )}
 
-        <TaskList
-          tasks={tasks}
-          onAddTask={handleAddTask}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
-          onStatusChange={handleStatusChange}
-          onViewDetails={handleViewDetails}
-          loading={loading}
-        />
+            <TaskList
+              tasks={tasks}
+              onAddTask={handleAddTask}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+              onStatusChange={handleStatusChange}
+              onViewDetails={handleViewDetails}
+              loading={loading}
+            />
 
-        {showForm && (
-          <TaskForm
-            task={editingTask}
-            onSubmit={handleFormSubmit}
-            onCancel={handleFormCancel}
-            isLoading={formLoading}
-          />
-        )}
+            {showForm && (
+              <TaskForm
+                task={editingTask}
+                onSubmit={handleFormSubmit}
+                onCancel={handleFormCancel}
+                isLoading={formLoading}
+              />
+            )}
 
-        {selectedTask && (
-          <TaskDetails
-            task={selectedTask}
-            onClose={handleCloseDetails}
-            onEdit={handleEditTask}
-          />
+            {selectedTask && (
+              <TaskDetails
+                task={selectedTask}
+                onClose={handleCloseDetails}
+                onEdit={handleEditTask}
+              />
+            )}
+          </>
+        ) : (
+          <ProductManagement />
         )}
       </div>
     </div>
