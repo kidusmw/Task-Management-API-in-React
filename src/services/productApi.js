@@ -50,7 +50,11 @@ class ProductApiService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData),
       });
-      if (!res.ok) throw new Error('Failed to update product');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error("Error response:", error);
+        throw new Error(error.message || `Failed to update product: ${res.status}`);
+      }
       return await res.json();
     }
   
@@ -60,7 +64,11 @@ class ProductApiService {
         headers: this.getAuthHeaders(),
         body: JSON.stringify(productData),
       });
-      if (!res.ok) throw new Error('Failed to patch product');
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error("Error response:", error);
+        throw new Error(error.message || `Failed to patch product: ${res.status}`);
+      }
       return await res.json();
     }
   

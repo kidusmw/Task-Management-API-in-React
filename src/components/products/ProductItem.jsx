@@ -129,15 +129,11 @@ const ProductItem = ({
       </div>
 
       <div className="flex items-center justify-between">
-        <select
-          value={product.status}
-          onChange={(e) => onStatusChange(product.id, e.target.value)}
-          className={`px-2 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(product.status)} cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500`}
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium border-0 ${getStatusColor(product.status)}`}
         >
-          <option value={PRODUCT_STATUS.AVAILABLE}>{PRODUCT_STATUS_LABELS[PRODUCT_STATUS.AVAILABLE]}</option>
-          <option value={PRODUCT_STATUS.OUT_OF_STOCK}>{PRODUCT_STATUS_LABELS[PRODUCT_STATUS.OUT_OF_STOCK]}</option>
-          <option value={PRODUCT_STATUS.DISCONTINUED}>{PRODUCT_STATUS_LABELS[PRODUCT_STATUS.DISCONTINUED]}</option>
-        </select>
+          {PRODUCT_STATUS_LABELS[product.status.toLowerCase()]}
+        </span>
 
         <div className="text-xs text-gray-500">
           {new Date(product.updatedAt).toLocaleDateString()}
