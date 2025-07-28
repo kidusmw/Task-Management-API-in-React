@@ -4,7 +4,7 @@ import ProductList from './ProductList';
 import ProductForm from './ProductForm';
 import ProductDetails from './ProductDetails';
 
-const ProductManagement = () => {
+const ProductManagement = ({ onViewDetails: externalOnViewDetails }) => {
   const {
     products,
     loading,
