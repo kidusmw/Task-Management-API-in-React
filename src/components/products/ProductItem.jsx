@@ -11,6 +11,8 @@ const ProductItem = ({
   onViewDetails,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const { addToCart, getItemCount } = useCart();
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
