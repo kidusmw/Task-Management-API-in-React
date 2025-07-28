@@ -70,7 +70,11 @@ const ProductManagement = ({ onViewDetails: externalOnViewDetails }) => {
   };
 
   const handleViewDetails = (product) => {
-    setSelectedProduct(product);
+    if (externalOnViewDetails) {
+      externalOnViewDetails(product);
+    } else {
+      setSelectedProduct(product);
+    }
   };
 
   const handleCloseDetails = () => {
