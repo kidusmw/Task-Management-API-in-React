@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Minus, ShoppingCart, Star, Heart, Share2, Truck } from 'lucide-react';
-import { PRODUCT_STATUS } from '../../types/product';
+import { ArrowLeft, Heart, Minus, Plus, Share2, ShoppingCart, Star, Truck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
+import { PRODUCT_STATUS } from '../../types/product';
 
 const ProductDetailPage = ({ product, onBack }) => {
   const { addToCart, getItemCount, formatPrice } = useCart();
@@ -89,7 +89,7 @@ const ProductDetailPage = ({ product, onBack }) => {
             <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={`http://127.0.0.1:8000/storage/${product.images[selectedImage]?.url || product.images[0]?.url}`}
+                  src={`http://127.0.0.1:8000${product.images[selectedImage] || product.images[0]}`}
                   alt={product.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -118,7 +118,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                     }`}
                   >
                     <img
-                      src={`http://127.0.0.1:8000/storage/${image.url}`}
+                      src={`http://127.0.0.1:8000${image}`}
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

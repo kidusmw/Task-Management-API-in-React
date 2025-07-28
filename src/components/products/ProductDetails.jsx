@@ -1,5 +1,5 @@
+import { AlertCircle, Calendar, Package, PackageX, X } from 'lucide-react';
 import React from 'react';
-import { X, Calendar, Package, PackageX, AlertCircle } from 'lucide-react';
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 
 const ProductDetails = ({ product, onClose, onEdit }) => {
@@ -60,7 +60,7 @@ const ProductDetails = ({ product, onClose, onEdit }) => {
                   {product.images.map((image, index) => (
                     <div key={image.id || index} className="relative">
                       <img
-                        src={`http://127.0.0.1:8000/storage/${image.url}`}
+                        src={`http://127.0.0.1:8000${image.url}`}
                         alt={`${product.title} ${index + 1}`}
                         className="w-full h-24 object-cover rounded-md border border-gray-200"
                         onError={(e) => {

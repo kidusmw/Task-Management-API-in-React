@@ -81,7 +81,7 @@ const ProductItem = ({
       {product.images && product.images.length > 0 && (
         <div className="mb-3 relative">
           <img
-            src={`http://127.0.0.1:8000/storage/${product.images[0].url}`}
+            src={`http://127.0.0.1:8000${product.images[0]}`}
             alt={product.title}
             className="w-full h-32 object-cover rounded-md"
             onError={(e) => {
