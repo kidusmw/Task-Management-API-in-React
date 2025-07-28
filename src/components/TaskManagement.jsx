@@ -100,7 +100,12 @@ const TaskManagement = () => {
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'tasks' ? (
+        {selectedProduct ? (
+          <ProductDetailPage
+            product={selectedProduct}
+            onBack={handleBackToProducts}
+          />
+        ) : activeTab === 'tasks' ? (
           <>
             {error && (
               <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md">
@@ -135,9 +140,11 @@ const TaskManagement = () => {
               />
             )}
           </>
-        ) : (
-          <ProductManagement />
-        )}
+        ) : activeTab === 'products' ? (
+          <ProductManagement onViewDetails={handleViewProductDetails} />
+        ) : activeTab === 'cart' ? (
+          <CartManagement onContinueShopping={handleContinueShopping} />
+        ) : null}
       </div>
     </div>
   );
