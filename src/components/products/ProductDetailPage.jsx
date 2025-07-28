@@ -65,6 +65,15 @@ const ProductDetailPage = ({ product, onBack }) => {
   const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
   const isAvailable = product.status === PRODUCT_STATUS.AVAILABLE;
 
+  const normalizeImagePath = (path) => {
+    // Remove extra slashes and ensure exactly one /storage/
+    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
+  };
+
+  const normalizedPath = normalizeImagePath(product.images[0]);
+  const src = `http://127.0.0.1:8000${normalizedPath}`;
+  const srcSelected = `http://127.0.0.1:8000${normalizeImagePath(product.images[selectedImage])}`;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -89,7 +98,7 @@ const ProductDetailPage = ({ product, onBack }) => {
             <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={`http://127.0.0.1:8000${product.images[selectedImage] || product.images[0]}`}
+                  src={srcSelected || src}
                   alt={product.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -118,7 +127,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                     }`}
                   >
                     <img
-                      src={`http://127.0.0.1:8000${image}`}
+                      src={`http://127.0.0.1:8000${normalizeImagePath(image)}`}
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

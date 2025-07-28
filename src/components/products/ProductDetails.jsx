@@ -36,6 +36,14 @@ const ProductDetails = ({ product, onClose, onEdit }) => {
     }).format(price);
   };
 
+  const normalizeImagePath = (path) => {
+    // Remove extra slashes and ensure exactly one /storage/
+    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
+  };
+
+  const normalizedPath = normalizeImagePath(product.images[0]);
+  const src = `http://127.0.0.1:8000${normalizedPath}`;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -60,7 +68,7 @@ const ProductDetails = ({ product, onClose, onEdit }) => {
                   {product.images.map((image, index) => (
                     <div key={image.id || index} className="relative">
                       <img
-                        src={`http://127.0.0.1:8000${image.url}`}
+                        src={src}
                         alt={`${product.title} ${index + 1}`}
                         className="w-full h-24 object-cover rounded-md border border-gray-200"
                         onError={(e) => {

@@ -7,7 +7,6 @@ const ProductItem = ({
   product,
   onEdit,
   onDelete,
-  onStatusChange,
   onViewDetails,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -76,12 +75,21 @@ const ProductItem = ({
   const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
   const canAddToCart = product.status === PRODUCT_STATUS.AVAILABLE;
 
+  const normalizeImagePath = (path) => {
+    // Remove extra slashes and ensure exactly one /storage/
+    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
+  };
+
+  const normalizedPath = normalizeImagePath(product.images[0]);
+  const src = `http://127.0.0.1:8000${normalizedPath}`;
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
       {product.images && product.images.length > 0 && (
         <div className="mb-3 relative">
+          {console.log('Image path:', normalizedPath)}
           <img
-            src={`http://127.0.0.1:8000${product.images[0]}`}
+            src={src}
             alt={product.title}
             className="w-full h-32 object-cover rounded-md"
             onError={(e) => {
