@@ -27,6 +27,17 @@ const ProductItem = ({
     }
   };
 
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    try {
+      await addToCart(product.id, 1);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case PRODUCT_STATUS.AVAILABLE:
