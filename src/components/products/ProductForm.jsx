@@ -26,6 +26,11 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
         discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
         status: product.status,
         images: product.images || [],
+        variations: product.variations || {},
+        sku: product.sku || '',
+        category: product.category || '',
+        stock: product.stock ? product.stock.toString() : '',
+        weight: product.weight || '',
       });
     }
   }, [product]);
