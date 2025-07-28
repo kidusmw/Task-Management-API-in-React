@@ -83,6 +83,18 @@ const TaskManagement = () => {
     setSelectedTask(null);
   };
 
+  const handleViewProductDetails = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleBackToProducts = () => {
+    setSelectedProduct(null);
+  };
+
+  const handleContinueShopping = () => {
+    setActiveTab('products');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
