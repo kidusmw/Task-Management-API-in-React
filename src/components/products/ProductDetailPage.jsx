@@ -89,9 +89,12 @@ const ProductDetailPage = ({ product, onBack }) => {
             <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={product.images[selectedImage]?.url || product.images[0]?.url}
+                  src={`http://127.0.0.1:8000/storage/${product.images[selectedImage]?.url || product.images[0]?.url}`}
                   alt={product.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect width="400" height="400" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="16"%3ENo Image Available%3C/text%3E%3C/svg%3E';
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -115,9 +118,12 @@ const ProductDetailPage = ({ product, onBack }) => {
                     }`}
                   >
                     <img
-                      src={image.url}
+                      src={`http://127.0.0.1:8000/storage/${image.url}`}
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="8"%3ENo Image%3C/text%3E%3C/svg%3E';
+                      }}
                     />
                   </button>
                 ))}
