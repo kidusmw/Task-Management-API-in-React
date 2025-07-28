@@ -15,7 +15,13 @@ const AppContent = () => {
     );
   }
 
-  return user ? <TaskManagement /> : <AuthPage />;
+  return user ? (
+    <CartProvider>
+      <TaskManagement />
+    </CartProvider>
+  ) : (
+    <AuthPage />
+  );
 };
 
 function App() {
