@@ -264,6 +264,131 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
+                  SKU
+                </label>
+                <input
+                  type="text"
+                  id="sku"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Product SKU"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <input
+                  type="text"
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Product category"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Quantity
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Available quantity"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
+                  Weight
+                </label>
+                <input
+                  type="text"
+                  id="weight"
+                  value={formData.weight}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., 1.5 kg"
+                />
+              </div>
+            </div>
+
+            {/* Product Variations */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Product Variations
+                </label>
+                <button
+                  type="button"
+                  onClick={addVariationType}
+                  className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Plus size={14} />
+                  Add Type
+                </button>
+              </div>
+
+              {Object.keys(formData.variations).length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No variations added. Click "Add Type" to create color, size, or other variations.</p>
+              ) : (
+                <div className="space-y-3">
+                  {Object.entries(formData.variations).map(([variationType, options]) => (
+                    <div key={variationType} className="border border-gray-200 rounded-md p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900 capitalize">{variationType}</h4>
+                        <button
+                          type="button"
+                          onClick={() => removeVariationType(variationType)}
+                          className="text-red-600 hover:text-red-700 text-sm"
+                        >
+                          Remove Type
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {options.map((option, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                          >
+                            {option}
+                            <button
+                              type="button"
+                              onClick={() => removeVariationOption(variationType, index)}
+                              className="text-red-500 hover:text-red-700 ml-1"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => addVariationOption(variationType)}
+                        className="text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        + Add Option
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                 Availability *
