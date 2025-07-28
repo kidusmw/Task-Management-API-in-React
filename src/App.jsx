@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AuthPage from './components/auth/AuthPage';
 import TaskManagement from './components/TaskManagement';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -14,7 +15,13 @@ const AppContent = () => {
     );
   }
 
-  return user ? <TaskManagement /> : <AuthPage />;
+  return user ? (
+    <CartProvider>
+      <TaskManagement />
+    </CartProvider>
+  ) : (
+    <AuthPage />
+  );
 };
 
 function App() {

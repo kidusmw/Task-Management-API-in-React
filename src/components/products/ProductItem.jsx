@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Eye, Package, PackageX, AlertCircle } from 'lucide-react';
+import { Edit, Trash2, Eye, Package, PackageX, AlertCircle, ShoppingCart } from 'lucide-react';
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
+import { useCart } from '../../contexts/CartContext';
 
 const ProductItem = ({
   product,
@@ -10,6 +11,8 @@ const ProductItem = ({
   onViewDetails,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const { addToCart, getItemCount } = useCart();
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
@@ -21,6 +24,17 @@ const ProductItem = ({
       } finally {
         setIsDeleting(false);
       }
+    }
+  };
+
+  const handleAddToCart = async () => {
+    setAddingToCart(true);
+    try {
+      await addToCart(product.id, 1);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -56,6 +70,11 @@ const ProductItem = ({
       currency: 'USD',
     }).format(price);
   };
+
+  const currentItemCount = getItemCount(product.id);
+  const isOutOfStock = product.status === PRODUCT_STATUS.OUT_OF_STOCK;
+  const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
+  const canAddToCart = product.status === PRODUCT_STATUS.AVAILABLE;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
@@ -118,15 +137,49 @@ const ProductItem = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold text-gray-900">
-            {formatPrice(product.price)}
+            {product.discountPrice ? formatPrice(product.discountPrice) : formatPrice(product.price)}
           </span>
           {product.discountPrice && (
-            <span className="text-sm text-red-600 font-medium">
-              {formatPrice(product.discountPrice)}
+            <span className="text-sm text-gray-500 line-through">
+              {formatPrice(product.price)}
             </span>
           )}
         </div>
       </div>
+
+      {/* Add to Cart Button */}
+      {canAddToCart && (
+        <div className="mb-3">
+          <button
+            onClick={handleAddToCart}
+            disabled={addingToCart}
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {addingToCart ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+            ) : (
+              <ShoppingCart size={16} />
+            )}
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
+          </button>
+          {currentItemCount > 0 && (
+            <p className="text-xs text-gray-600 text-center mt-1">
+              {currentItemCount} in cart
+            </p>
+          )}
+        </div>
+      )}
+
+      {(isOutOfStock || isDiscontinued) && (
+        <div className="mb-3">
+          <button
+            disabled
+            className="w-full bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed"
+          >
+            {isOutOfStock ? 'Out of Stock' : 'Discontinued'}
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <span

@@ -5,6 +5,8 @@ import TaskForm from './TaskForm';
 import TaskDetails from './TaskDetails';
 import Header from './layout/Header';
 import ProductManagement from './products/ProductManagement';
+import CartManagement from './cart/CartManagement';
+import ProductDetailPage from './products/ProductDetailPage';
 
 const TaskManagement = () => {
   const {
@@ -22,6 +24,7 @@ const TaskManagement = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleAddTask = () => {
     setEditingTask(null);
@@ -80,12 +83,29 @@ const TaskManagement = () => {
     setSelectedTask(null);
   };
 
+  const handleViewProductDetails = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleBackToProducts = () => {
+    setSelectedProduct(null);
+  };
+
+  const handleContinueShopping = () => {
+    setActiveTab('products');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'tasks' ? (
+        {selectedProduct ? (
+          <ProductDetailPage
+            product={selectedProduct}
+            onBack={handleBackToProducts}
+          />
+        ) : activeTab === 'tasks' ? (
           <>
             {error && (
               <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md">
@@ -120,9 +140,11 @@ const TaskManagement = () => {
               />
             )}
           </>
-        ) : (
-          <ProductManagement />
-        )}
+        ) : activeTab === 'products' ? (
+          <ProductManagement onViewDetails={handleViewProductDetails} />
+        ) : activeTab === 'cart' ? (
+          <CartManagement onContinueShopping={handleContinueShopping} />
+        ) : null}
       </div>
     </div>
   );
