@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Plus } from 'lucide-react';
+import { Plus, Save, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 
 const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
@@ -37,22 +37,48 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.title.trim() && formData.price) {
-      await onSubmit({
-        ...formData,
-        title: formData.title.trim(),
-        description: formData.description?.trim() || '',
-        price: parseFloat(formData.price),
-        discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
-        images: formData.images,
-        variations: formData.variations,
-        sku: formData.sku?.trim() || '',
-        category: formData.category?.trim() || '',
-        stock: formData.stock ? parseInt(formData.stock) : null,
-        weight: formData.weight?.trim() || '',
-      });
+
+    const {
+      title,
+      description,
+      price,
+      discountPrice,
+      images,
+      variations,
+      sku,
+      category,
+      stock,
+      weight,
+      status,
+    } = formData;
+
+    // Use FormData for file + text
+    const data = new FormData();
+    data.append('title', title.trim());
+    data.append('description', description.trim());
+    data.append('price', parseFloat(price));
+    if (discountPrice) data.append('discountPrice', parseFloat(discountPrice));
+    data.append('sku', sku.trim());
+    data.append('category', category.trim());
+    data.append('stock', stock ? parseInt(stock) : '');
+    data.append('weight', weight.trim());
+    data.append('status', status);
+    data.append('variations', JSON.stringify(variations)); // serialize variations
+
+    // Add images
+    images.forEach((img) => {
+      if (img.file) {
+        data.append('images[]', img.file);
+      }
+    });
+
+    try {
+      await onSubmit(data);
+    } catch (err) {
+      console.error('Submit error:', err);
     }
   };
+
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);

@@ -1,7 +1,7 @@
+import { AlertCircle, Edit, Eye, Package, PackageX, ShoppingCart, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Edit, Trash2, Eye, Package, PackageX, AlertCircle, ShoppingCart } from 'lucide-react';
-import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 import { useCart } from '../../contexts/CartContext';
+import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 
 const ProductItem = ({
   product,
@@ -81,7 +81,7 @@ const ProductItem = ({
       {product.images && product.images.length > 0 && (
         <div className="mb-3">
           <img
-            src={product.images[0].url}
+            src={`http://127.0.0.1:8000/${product.images[0]}`}
             alt={product.title}
             className="w-full h-32 object-cover rounded-md"
           />
