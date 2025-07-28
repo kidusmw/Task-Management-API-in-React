@@ -48,9 +48,12 @@ const CartItem = ({ item }) => {
         <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
           {item.product?.images && item.product.images.length > 0 ? (
             <img
-              src={item.product.images[0].url}
+              src={`http://127.0.0.1:8000/storage/${item.product.images[0].url}`}
               alt={item.product?.title || 'Product'}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="10"%3ENo Image%3C/text%3E%3C/svg%3E';
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-200">

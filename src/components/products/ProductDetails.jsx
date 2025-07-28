@@ -60,9 +60,12 @@ const ProductDetails = ({ product, onClose, onEdit }) => {
                   {product.images.map((image, index) => (
                     <div key={image.id || index} className="relative">
                       <img
-                        src={image.url}
+                        src={`http://127.0.0.1:8000/storage/${image.url}`}
                         alt={`${product.title} ${index + 1}`}
                         className="w-full h-24 object-cover rounded-md border border-gray-200"
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="96" viewBox="0 0 200 96"%3E%3Crect width="200" height="96" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        }}
                       />
                     </div>
                   ))}
