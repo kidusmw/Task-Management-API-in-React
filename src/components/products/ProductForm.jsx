@@ -45,6 +45,11 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
         price: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
         images: formData.images,
+        variations: formData.variations,
+        sku: formData.sku?.trim() || '',
+        category: formData.category?.trim() || '',
+        stock: formData.stock ? parseInt(formData.stock) : null,
+        weight: formData.weight?.trim() || '',
       });
     }
   };
