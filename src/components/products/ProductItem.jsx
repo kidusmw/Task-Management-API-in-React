@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Eye, Package, PackageX, AlertCircle } from 'lucide-react';
+import { Edit, Trash2, Eye, Package, PackageX, AlertCircle, ShoppingCart } from 'lucide-react';
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
+import { useCart } from '../../contexts/CartContext';
 
 const ProductItem = ({
   product,
