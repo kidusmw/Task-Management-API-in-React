@@ -24,6 +24,7 @@ const TaskManagement = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleAddTask = () => {
     setEditingTask(null);
