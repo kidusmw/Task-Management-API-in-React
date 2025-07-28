@@ -71,6 +71,11 @@ const ProductItem = ({
     }).format(price);
   };
 
+  const currentItemCount = getItemCount(product.id);
+  const isOutOfStock = product.status === PRODUCT_STATUS.OUT_OF_STOCK;
+  const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
+  const canAddToCart = product.status === PRODUCT_STATUS.AVAILABLE;
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
       {product.images && product.images.length > 0 && (
