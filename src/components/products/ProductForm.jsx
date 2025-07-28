@@ -10,6 +10,11 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     discountPrice: '',
     status: PRODUCT_STATUS.AVAILABLE,
     images: [],
+    variations: {},
+    sku: '',
+    category: '',
+    stock: '',
+    weight: '',
   });
 
   useEffect(() => {
