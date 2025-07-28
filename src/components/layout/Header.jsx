@@ -39,6 +39,24 @@ const Header = ({ activeTab, onTabChange }) => {
               <Package size={20} />
               <span className="hidden sm:inline">Product Management</span>
             </button>
+            <button
+              onClick={() => onTabChange('cart')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors relative ${
+                activeTab === 'cart'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <div className="relative">
+                <ShoppingCart size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:inline">Cart</span>
+            </button>
           </nav>
 
           <div className="flex items-center gap-4">
