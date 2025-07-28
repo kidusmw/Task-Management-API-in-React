@@ -90,6 +90,53 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     }));
   };
 
+  const addVariationType = () => {
+    const variationType = prompt('Enter variation type (e.g., Color, Size):');
+    if (variationType && variationType.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        variations: {
+          ...prev.variations,
+          [variationType.trim()]: []
+        }
+      }));
+    }
+  };
+
+  const removeVariationType = (variationType) => {
+    setFormData(prev => {
+      const newVariations = { ...prev.variations };
+      delete newVariations[variationType];
+      return {
+        ...prev,
+        variations: newVariations
+      };
+    });
+  };
+
+  const addVariationOption = (variationType) => {
+    const option = prompt(`Enter option for ${variationType}:`);
+    if (option && option.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        variations: {
+          ...prev.variations,
+          [variationType]: [...prev.variations[variationType], option.trim()]
+        }
+      }));
+    }
+  };
+
+  const removeVariationOption = (variationType, optionIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      variations: {
+        ...prev.variations,
+        [variationType]: prev.variations[variationType].filter((_, index) => index !== optionIndex)
+      }
+    }));
+  };
+
   const statusOptions = [
     { value: PRODUCT_STATUS.AVAILABLE, label: PRODUCT_STATUS_LABELS[PRODUCT_STATUS.AVAILABLE], color: 'text-green-600' },
     { value: PRODUCT_STATUS.OUT_OF_STOCK, label: PRODUCT_STATUS_LABELS[PRODUCT_STATUS.OUT_OF_STOCK], color: 'text-red-600' },
