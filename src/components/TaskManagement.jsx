@@ -5,6 +5,8 @@ import TaskForm from './TaskForm';
 import TaskDetails from './TaskDetails';
 import Header from './layout/Header';
 import ProductManagement from './products/ProductManagement';
+import CartManagement from './cart/CartManagement';
+import ProductDetailPage from './products/ProductDetailPage';
 
 const TaskManagement = () => {
   const {
