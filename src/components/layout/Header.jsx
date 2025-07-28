@@ -1,6 +1,7 @@
 import React from 'react';
-import { CheckSquare, LogOut, User, ClipboardList, Package } from 'lucide-react';
+import { CheckSquare, LogOut, User, ClipboardList, Package, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 const Header = ({ activeTab, onTabChange }) => {
   const { user, logout } = useAuth();
