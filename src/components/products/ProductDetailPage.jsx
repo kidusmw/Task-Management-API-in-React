@@ -1,347 +1,543 @@
-import { ArrowLeft, Heart, Minus, Plus, Share2, ShoppingCart, Star, Truck } from 'lucide-react';
+import { Palette, Plus, Save, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useCart } from '../../contexts/CartContext';
-import { PRODUCT_STATUS } from '../../types/product';
+import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 
-const ProductDetailPage = ({ product, onBack }) => {
-  const { addToCart, getItemCount, formatPrice } = useCart();
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedVariations, setSelectedVariations] = useState({});
-  const [quantity, setQuantity] = useState(1);
-  const [addingToCart, setAddingToCart] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
+  const [showVariantsPanel, setShowVariantsPanel] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+    discountPrice: '',
+    status: PRODUCT_STATUS.AVAILABLE,
+    images: [],
+    variations: {},
+    variants: [],
+    stock: '',
+  });
 
-  // Initialize variations with first option of each variation type
   useEffect(() => {
-    if (product.variations && Object.keys(product.variations).length > 0) {
-      const initialVariations = {};
-      Object.keys(product.variations).forEach(variationType => {
-        if (product.variations[variationType].length > 0) {
-          initialVariations[variationType] = product.variations[variationType][0];
-        }
+    if (product) {
+      setFormData({
+        title: product.title,
+        description: product.description || '',
+        price: product.price.toString(),
+        discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
+        status: product.status,
+        images: product.images || [],
+        variations: product.variations || {},
+        variants: product.variants || [],
+        stock: product.stock ? product.stock.toString() : '',
       });
-      setSelectedVariations(initialVariations);
     }
   }, [product]);
 
-  const handleVariationChange = (variationType, value) => {
-    setSelectedVariations(prev => ({
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const {
+      title,
+      description,
+      price,
+      discountPrice,
+      images,
+      variations,
+      stock,
+      status,
+      variants,
+    } = formData;
+
+    // Transform variants to backend format
+    const transformedVariants = variants.map(v => ({
+      variation_values: {
+        color: v.color,
+        size: v.size,
+      },
+      price: parseFloat(v.price),
+      stock: parseInt(v.quantity, 10),
+    }));
+
+    // Use FormData for file + text
+    const data = new FormData();
+    data.append('title', title.trim());
+    data.append('description', description.trim());
+    data.append('price', parseFloat(price));
+    if (discountPrice) data.append('discountPrice', parseFloat(discountPrice));
+    data.append('stock', stock ? parseInt(stock, 10) : '');
+    data.append('status', status);
+    data.append('variations', JSON.stringify(variations)); // serialize variations
+    data.append('variants', JSON.stringify(transformedVariants)); // serialize transformed variants
+
+    // Add images files
+    images.forEach((img) => {
+      if (img.file) {
+        data.append('images[]', img.file);
+      }
+    });
+
+    try {
+      await onSubmit(data);
+    } catch (err) {
+      console.error('Submit error:', err);
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const maxFiles = 5;
+
+    if (formData.images.length + files.length > maxFiles) {
+      alert(`You can only upload up to ${maxFiles} images`);
+      return;
+    }
+
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const newImage = {
+            id: Date.now() + Math.random(),
+            file: file,
+            url: event.target.result,
+            name: file.name
+          };
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, newImage]
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeImage = (imageId) => {
+    setFormData(prev => ({
       ...prev,
-      [variationType]: value
+      images: prev.images.filter(img => img.id !== imageId)
     }));
   };
 
-  const handleAddToCart = async () => {
-    setAddingToCart(true);
-    try {
-      await addToCart(product.id, quantity, selectedVariations);
-      // Show success message or feedback
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    } finally {
-      setAddingToCart(false);
+  const addVariationType = () => {
+    const variationType = prompt('Enter variation type (e.g., Color, Size):');
+    if (variationType && variationType.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        variations: {
+          ...prev.variations,
+          [variationType.trim()]: []
+        }
+      }));
     }
   };
 
-  const handleQuantityChange = (newQuantity) => {
-    if (newQuantity >= 1 && newQuantity <= (product.stock || 99)) {
-      setQuantity(newQuantity);
+  const removeVariationType = (variationType) => {
+    setFormData(prev => {
+      const newVariations = { ...prev.variations };
+      delete newVariations[variationType];
+      return {
+        ...prev,
+        variations: newVariations
+      };
+    });
+  };
+
+  const addVariationOption = (variationType) => {
+    const option = prompt(`Enter option for ${variationType}:`);
+    if (option && option.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        variations: {
+          ...prev.variations,
+          [variationType]: [...prev.variations[variationType], option.trim()]
+        }
+      }));
     }
   };
 
-  const getCurrentPrice = () => {
-    return product.discountPrice || product.price;
+  const removeVariationOption = (variationType, optionIndex) => {
+    setFormData(prev => ({
+      ...prev,
+      variations: {
+        ...prev.variations,
+        [variationType]: prev.variations[variationType].filter((_, index) => index !== optionIndex)
+      }
+    }));
   };
 
-  const getDiscountPercentage = () => {
-    if (product.discountPrice && product.price > product.discountPrice) {
-      return Math.round((1 - product.discountPrice / product.price) * 100);
-    }
-    return 0;
+  const colors = [
+    'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Black', 'White', 'Gray',
+    'Navy', 'Maroon', 'Teal', 'Lime', 'Cyan', 'Magenta', 'Silver', 'Gold', 'Brown', 'Beige'
+  ];
+
+  const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+
+  const addVariant = () => {
+    const newVariant = {
+      id: Date.now(),
+      color: colors[0],
+      size: sizes[0],
+      price: formData.price || '0',
+      quantity: '1'
+    };
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, newVariant]
+    }));
   };
 
-  const currentItemCount = getItemCount(product.id, selectedVariations);
-  const isOutOfStock = product.status === PRODUCT_STATUS.OUT_OF_STOCK;
-  const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
-  const isAvailable = product.status === PRODUCT_STATUS.AVAILABLE;
+  const updateVariant = (variantId, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.map(variant =>
+        variant.id === variantId ? { ...variant, [field]: value } : variant
+      )
+    }));
+  };
+
+  const removeVariant = (variantId) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter(variant => variant.id !== variantId)
+    }));
+  };
+
+  const statusOptions = [
+    { value: PRODUCT_STATUS.AVAILABLE, label: PRODUCT_STATUS_LABELS[PRODUCT_STATUS.AVAILABLE], color: 'text-green-600' },
+    { value: PRODUCT_STATUS.OUT_OF_STOCK, label: PRODUCT_STATUS_LABELS[PRODUCT_STATUS.OUT_OF_STOCK], color: 'text-red-600' },
+    { value: PRODUCT_STATUS.DISCONTINUED, label: PRODUCT_STATUS_LABELS[PRODUCT_STATUS.DISCONTINUED], color: 'text-gray-600' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span>Back to Products</span>
-            </button>
-          </div>
-        </div>
-      </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className={`bg-white rounded-lg shadow-xl w-full ${showVariantsPanel ? 'max-w-6xl' : 'max-w-2xl'} max-h-[90vh] flex transition-all duration-300`}>
+        {/* Main Form */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {product ? 'Edit Product' : 'Create New Product'}
+              </h2>
+              <button
+                onClick={onCancel}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image Gallery */}
-          <div className="space-y-4">
-            <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
-              {product.images && product.images.length > 0 ? (
-                <img
-                  src={`http://127.0.0.1:8000${product.images[selectedImage] || product.images[0]}`}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect width="400" height="400" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="16"%3ENo Image Available%3C/text%3E%3C/svg%3E';
-                  }}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Title *
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter product title"
+                  required
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                  <div className="text-gray-400 text-center">
-                    <div className="w-16 h-16 mx-auto mb-2 bg-gray-200 rounded-lg"></div>
-                    <p>No image available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Thumbnail Gallery */}
-            {product.images && product.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden transition-colors ${
-                      selectedImage === index ? 'border-blue-500' : 'border-gray-200'
-                    }`}
-                  >
-                    <img
-                      src={`http://127.0.0.1:8000${image}`}
-                      alt={`${product.title} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="8"%3ENo Image%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                  </button>
-                ))}
               </div>
-            )}
-          </div>
 
-          {/* Product Information */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.title}</h1>
-              <p className="text-gray-600">{product.description}</p>
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={16} className="text-yellow-400 fill-current" />
-                ))}
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter product description"
+                  rows={3}
+                />
               </div>
-              <span className="text-sm text-gray-600">(4.5) 128 reviews</span>
-            </div>
 
-            {/* Price */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-gray-900">
-                  {formatPrice(getCurrentPrice())}
-                </span>
-                {product.discountPrice && (
-                  <>
-                    <span className="text-xl text-gray-500 line-through">
-                      {formatPrice(product.price)}
-                    </span>
-                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-sm font-medium">
-                      -{getDiscountPercentage()}%
-                    </span>
-                  </>
-                )}
-              </div>
-              {isOutOfStock && (
-                <p className="text-red-600 font-medium">Out of Stock</p>
-              )}
-              {isDiscontinued && (
-                <p className="text-gray-600 font-medium">Discontinued</p>
-              )}
-            </div>
+              <div>
+                <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Images (Max 5)
+                </label>
+                <input
+                  type="file"
+                  id="images"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
 
-            {/* Variations */}
-            {product.variations && Object.keys(product.variations).length > 0 && (
-              <div className="space-y-4">
-                {Object.entries(product.variations).map(([variationType, options]) => (
-                  <div key={variationType}>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2 capitalize">
-                      {variationType}: {selectedVariations[variationType]}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {options.map((option, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleVariationChange(variationType, option)}
-                          className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                            selectedVariations[variationType] === option
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                          }`}
-                        >
-                          {option}
-                        </button>
+                {formData.images.length > 0 && (
+                  <div className="mt-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {formData.images.map((image) => (
+                        <div key={image.id} className="relative group">
+                          <img
+                            src={`http://127.0.0.1:8000/storage/${image.url}`}
+                            alt={image.name}
+                            className="w-full h-20 object-cover rounded-md border border-gray-200"
+                            onError={(e) => {
+                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80"%3E%3Crect width="200" height="80" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="11"%3ENo Image%3C/text%3E%3C/svg%3E';
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(image.id)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-md truncate">
+                            {image.name}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
-            )}
 
-            {/* Product Variants */}
-            {product.variants && product.variants.length > 0 && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                    Price *
+                  </label>
+                  <input
+                    type="number"
+                    id="price"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="discountPrice" className="block text-sm font-medium text-gray-700 mb-1">
+                    Discount Price
+                  </label>
+                  <input
+                    type="number"
+                    id="discountPrice"
+                    value={formData.discountPrice}
+                    onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+
+
+              <div>
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Quantity
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Available quantity"
+                  min="0"
+                />
+              </div>
+
+              {/* Product Variants */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Product Variants
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowVariantsPanel(!showVariantsPanel)}
+                    className="flex items-center gap-1 px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    <Palette size={14} />
+                    {showVariantsPanel ? 'Hide Variants' : 'Manage Variants'}
+                  </button>
+                </div>
+
+                {formData.variants.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">No variants added. Click "Manage Variants" to add color, size, and pricing options.</p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">Variants: {formData.variants.length}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.variants.map((variant) => (
+                        <span
+                          key={variant.id}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs"
+                        >
+                          {variant.color} / {variant.size} - ${variant.price} (Qty: {variant.quantity})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                  Availability *
+                </label>
+                <select
+                  id="status"
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {statusOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !formData.title.trim() || !formData.price}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  ) : (
+                    <>
+                      {product ? <Save size={16} /> : <Plus size={16} />}
+                      {product ? 'Save Changes' : 'Create Product'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Variants Side Panel */}
+        {showVariantsPanel && (
+          <div className="w-96 border-l border-gray-200 bg-gray-50 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Product Variants</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowVariantsPanel(false)}
+                  className="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={addVariant}
+                className="w-full mb-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus size={16} />
+                Add New Variant
+              </button>
+
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Available Variants</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {product.variants.map((variant, index) => (
-                    <div
-                      key={variant.id || index}
-                      className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">
-                            {variant.color} / {variant.size}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            #{variant.id || `variant-${index + 1}`}
-                          </span>
-                        </div>
+                {formData.variants.map((variant) => (
+                  <div key={variant.id} className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium text-gray-900">Variant #{variant.id.toString().slice(-4)}</h4>
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(variant.id)}
+                        className="text-red-600 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
 
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-semibold text-blue-600">
-                            {formatPrice(variant.price)}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            Qty: {variant.quantity}
-                          </span>
-                        </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
+                        <select
+                          value={variant.color}
+                          onChange={(e) => updateVariant(variant.id, 'color', e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        >
+                          {colors.map(color => (
+                            <option key={color} value={color}>{color}</option>
+                          ))}
+                        </select>
+                      </div>
 
-                        {variant.quantity > 0 ? (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                            In Stock
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                            Out of Stock
-                          </span>
-                        )}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
+                        <select
+                          value={variant.size}
+                          onChange={(e) => updateVariant(variant.id, 'size', e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        >
+                          {sizes.map(size => (
+                            <option key={size} value={size}>{size}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Price</label>
+                        <input
+                          type="number"
+                          value={variant.price}
+                          onChange={(e) => updateVariant(variant.id, 'price', e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
+                        <input
+                          type="number"
+                          value={variant.quantity}
+                          onChange={(e) => updateVariant(variant.id, 'quantity', e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          min="0"
+                          placeholder="1"
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                {/* JSON Debug Display */}
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 mb-2">
-                    View Raw Variants JSON
-                  </summary>
-                  <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
-                    {JSON.stringify(product.variants, null, 2)}
-                  </pre>
-                </details>
-              </div>
-            )}
-
-            {/* Quantity and Add to Cart */}
-            {isAvailable && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-900">Quantity:</span>
-                  <div className="flex items-center border border-gray-300 rounded-lg">
-                    <button
-                      onClick={() => handleQuantityChange(quantity - 1)}
-                      disabled={quantity <= 1}
-                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="px-4 py-2 border-x border-gray-300 min-w-16 text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => handleQuantityChange(quantity + 1)}
-                      disabled={quantity >= (product.stock || 99)}
-                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus size={16} />
-                    </button>
                   </div>
-                  {currentItemCount > 0 && (
-                    <span className="text-sm text-gray-600">
-                      ({currentItemCount} in cart)
-                    </span>
-                  )}
-                </div>
+                ))}
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={addingToCart}
-                    className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {addingToCart ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                    ) : (
-                      <ShoppingCart size={20} />
-                    )}
-                    {addingToCart ? 'Adding...' : 'Add to Cart'}
-                  </button>
-                  
-                  <button
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className={`p-3 border rounded-lg transition-colors ${
-                      isFavorite
-                        ? 'border-red-500 bg-red-50 text-red-600'
-                        : 'border-gray-300 text-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
-                  </button>
-                  
-                  <button className="p-3 border border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 transition-colors">
-                    <Share2 size={20} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Shipping Info */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Truck size={20} />
-                <span>Free shipping on orders over $50</span>
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="border-t border-gray-200 pt-6 space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Product Details</h3>
-              <div className="grid grid-cols-1 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Stock:</span>
-                  <span className="ml-2 text-gray-900">{product.stock || 'N/A'}</span>
-                </div>
+                {formData.variants.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Palette size={48} className="mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">No variants created yet</p>
+                    <p className="text-xs text-gray-400">Add variants to manage different colors, sizes, and pricing</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ProductDetailPage;
+export default ProductForm;
