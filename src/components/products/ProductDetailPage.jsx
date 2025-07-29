@@ -275,22 +275,10 @@ const ProductDetailPage = ({ product, onBack }) => {
             {/* Product Details */}
             <div className="border-t border-gray-200 pt-6 space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Product Details</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">SKU:</span>
-                  <span className="ml-2 text-gray-900">{product.sku || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Category:</span>
-                  <span className="ml-2 text-gray-900">{product.category || 'General'}</span>
-                </div>
+              <div className="grid grid-cols-1 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Stock:</span>
                   <span className="ml-2 text-gray-900">{product.stock || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Weight:</span>
-                  <span className="ml-2 text-gray-900">{product.weight || 'N/A'}</span>
                 </div>
               </div>
             </div>
