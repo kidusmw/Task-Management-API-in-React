@@ -1,8 +1,8 @@
+import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import React from 'react';
 import { useCart } from '../../contexts/CartContext';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
-import { ShoppingCart, ArrowLeft } from 'lucide-react';
 
 const CartManagement = ({ onContinueShopping }) => {
   const { cartItems, cartCount, cartTotal, loading, error, clearCart } = useCart();

@@ -1,66 +1,87 @@
-import { Minus, Plus, Trash2 } from 'lucide-react';
-import React, { useState } from 'react';
-import { useCart } from '../../contexts/CartContext';
+"use client"
+
+import { Minus, Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { useCart } from "../../contexts/CartContext"
 
 const CartItem = ({ item }) => {
-  const { updateCartItem, removeFromCart, formatPrice } = useCart();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const { updateCartItem, removeFromCart, formatPrice } = useCart()
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const handleQuantityChange = async (newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    setIsUpdating(true);
+    if (newQuantity < 1) return
+
+    setIsUpdating(true)
     try {
-      await updateCartItem(item.id, newQuantity);
+      await updateCartItem(item.id, newQuantity)
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      console.error("Error updating quantity:", error)
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
   const handleRemove = async () => {
-    if (window.confirm('Remove this item from your cart?')) {
-      setIsRemoving(true);
+    if (window.confirm("Remove this item from your cart?")) {
+      setIsRemoving(true)
       try {
-        await removeFromCart(item.id);
+        await removeFromCart(item.id)
       } catch (error) {
-        console.error('Error removing item:', error);
+        console.error("Error removing item:", error)
       } finally {
-        setIsRemoving(false);
+        setIsRemoving(false)
       }
     }
-  };
+  }
 
   const getItemPrice = () => {
-    return item.product?.discountPrice || item.product?.price || item.price || 0;
-  };
+    // If item has variations and the product has variants, find the matching variant price
+    if (item.variations && Object.keys(item.variations).length > 0 && item.product?.variants) {
+      const matchedVariant = item.product.variants.find((variant) =>
+        Object.entries(item.variations).every(([key, value]) => variant.variation_values?.[key] === value),
+      )
+
+      if (matchedVariant) {
+        return matchedVariant.price
+      }
+    }
+
+    // Fallback to product price or item price
+    return item.product?.discountPrice || item.product?.price || item.price || 0
+  }
 
   const getItemTotal = () => {
-    return getItemPrice() * item.quantity;
-  };
+    return getItemPrice() * item.quantity
+  }
 
   const normalizeImagePath = (path) => {
     // Remove extra slashes and ensure exactly one /storage/
-    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
-  };
+    return (
+      "/storage/" +
+      path
+        .split("/")
+        .filter((p) => p && p !== "storage")
+        .join("/")
+    )
+  }
 
-  const normalizedPath = normalizeImagePath(item.product.images[0]);
-  const src = `http://127.0.0.1:8000${normalizedPath}`;
+  const normalizedPath = normalizeImagePath(item.product.images[0])
+  const src = `http://127.0.0.1:8000${normalizedPath}`
 
   return (
-    <div className={`p-6 transition-opacity ${isRemoving ? 'opacity-50' : ''}`}>
+    <div className={`p-6 transition-opacity ${isRemoving ? "opacity-50" : ""}`}>
       <div className="flex gap-4">
         {/* Product Image */}
         <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
           {item.product?.images && item.product.images.length > 0 ? (
             <img
-              src={src}
-              alt={item.product?.title || 'Product'}
+              src={src || "/placeholder.svg"}
+              alt={item.product?.title || "Product"}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="10"%3ENo Image%3C/text%3E%3C/svg%3E';
+                e.target.src =
+                  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="%236b7280" fontFamily="Arial, sans-serif" fontSize="10"%3ENo Image%3C/text%3E%3C/svg%3E'
               }}
             />
           ) : (
@@ -74,10 +95,8 @@ const CartItem = ({ item }) => {
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start mb-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
-                {item.product?.title || 'Product'}
-              </h3>
-              
+              <h3 className="text-sm font-medium text-gray-900 truncate">{item.product?.title || "Product"}</h3>
+
               {/* Variations */}
               {item.variations && Object.keys(item.variations).length > 0 && (
                 <div className="mt-1">
@@ -88,11 +107,9 @@ const CartItem = ({ item }) => {
                   ))}
                 </div>
               )}
-              
+
               {/* SKU */}
-              {item.product?.sku && (
-                <p className="text-xs text-gray-500 mt-1">SKU: {item.product.sku}</p>
-              )}
+              {item.product?.sku && <p className="text-xs text-gray-500 mt-1">SKU: {item.product.sku}</p>}
             </div>
 
             {/* Remove Button */}
@@ -112,14 +129,13 @@ const CartItem = ({ item }) => {
 
           {/* Price and Quantity Controls */}
           <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center">
-              <span className="text-lg font-semibold text-gray-900">
-                {formatPrice(getItemPrice())}
-              </span>
-              {item.product?.discountPrice && item.product?.price > item.product?.discountPrice && (
-                <span className="ml-2 text-sm text-gray-500 line-through">
-                  {formatPrice(item.product.price)}
-                </span>
+            <div className="flex flex-col">
+              <span className="text-lg font-semibold text-gray-900">{formatPrice(getItemPrice())}</span>
+              {item.product?.discountPrice && item.product?.price > item.product?.discountPrice && !item.variations && (
+                <span className="text-sm text-gray-500 line-through">{formatPrice(item.product.price)}</span>
+              )}
+              {item.variations && Object.keys(item.variations).length > 0 && (
+                <span className="text-xs text-blue-600">Variant price</span>
               )}
             </div>
 
@@ -133,11 +149,11 @@ const CartItem = ({ item }) => {
                 >
                   <Minus size={14} />
                 </button>
-                
+
                 <span className="px-3 py-1 text-sm font-medium min-w-12 text-center border-x border-gray-300">
-                  {isUpdating ? '...' : item.quantity}
+                  {isUpdating ? "..." : item.quantity}
                 </span>
-                
+
                 <button
                   onClick={() => handleQuantityChange(item.quantity + 1)}
                   disabled={isUpdating}
@@ -146,11 +162,9 @@ const CartItem = ({ item }) => {
                   <Plus size={14} />
                 </button>
               </div>
-              
+
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">
-                  {formatPrice(getItemTotal())}
-                </p>
+                <p className="text-sm font-medium text-gray-900">{formatPrice(getItemTotal())}</p>
                 <p className="text-xs text-gray-500">Total</p>
               </div>
             </div>
@@ -158,14 +172,12 @@ const CartItem = ({ item }) => {
 
           {/* Stock Warning */}
           {item.product?.stock && item.quantity > item.product.stock && (
-            <div className="mt-2 text-sm text-red-600">
-              Only {item.product.stock} items available
-            </div>
+            <div className="mt-2 text-sm text-red-600">Only {item.product.stock} items available</div>
           )}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CartItem;
+export default CartItem
