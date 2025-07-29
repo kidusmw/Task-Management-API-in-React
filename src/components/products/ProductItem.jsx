@@ -87,7 +87,6 @@ const ProductItem = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
       {product.images && product.images.length > 0 && (
         <div className="mb-3 relative">
-          {console.log('Image path:', normalizedPath)}
           <img
             src={src}
             alt={product.title}
@@ -163,7 +162,7 @@ const ProductItem = ({
         <div className="mb-3">
           <button
             onClick={handleAddToCart}
-            disabled={addingToCart}
+            // disabled={addingToCart}
             className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {addingToCart ? (

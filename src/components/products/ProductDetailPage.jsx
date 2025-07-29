@@ -1,7 +1,66 @@
-import { ArrowLeft, Heart, Minus, Plus, Share2, ShoppingCart, Star, Truck } from 'lucide-react';
+import {
+  ArrowLeft,
+  Heart,
+  Minus,
+  Plus,
+  Share2,
+  ShoppingCart,
+  Star,
+  Truck,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import { PRODUCT_STATUS } from '../../types/product';
+
+// Reusable component for each variation selector (e.g., color, size)
+const VariationSelector = ({ variationType, options, selectedValue, onChange }) => (
+  <div key={variationType}>
+    <h3 className="text-sm font-medium text-gray-900 mb-2 capitalize">
+      {variationType}: {selectedValue}
+    </h3>
+    <div className="flex flex-wrap gap-2">
+      {options.map((option, idx) => (
+        <button
+          key={idx}
+          onClick={() => onChange(variationType, option)}
+          className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
+            selectedValue === option
+              ? 'border-blue-500 bg-blue-50 text-blue-700'
+              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+          }`}
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+// Component to display the details of the matched variant based on selected variations
+const VariantDetails = ({ variants, selectedVariations }) => {
+  const matchedVariant = variants.find((variant) =>
+    Object.entries(selectedVariations).every(
+      ([key, value]) => variant.variation_values?.[key] === value
+    )
+  );
+
+  if (!matchedVariant) {
+    return <p className="text-sm text-gray-500">No variant matches this selection.</p>;
+  }
+
+  return (
+    <>
+      <p className="text-sm text-gray-800">Price: ${matchedVariant.price}</p>
+      <p className="text-sm text-gray-800">Stock: {matchedVariant.stock}</p>
+      {matchedVariant.variation_values.color && (
+        <p className="text-sm text-gray-800">Color: {matchedVariant.variation_values.color}</p>
+      )}
+      {matchedVariant.variation_values.size && (
+        <p className="text-sm text-gray-800">Size: {matchedVariant.variation_values.size}</p>
+      )}
+    </>
+  );
+};
 
 const ProductDetailPage = ({ product, onBack }) => {
   const { addToCart, getItemCount, formatPrice } = useCart();
@@ -15,7 +74,7 @@ const ProductDetailPage = ({ product, onBack }) => {
   useEffect(() => {
     if (product.variations && Object.keys(product.variations).length > 0) {
       const initialVariations = {};
-      Object.keys(product.variations).forEach(variationType => {
+      Object.keys(product.variations).forEach((variationType) => {
         if (product.variations[variationType].length > 0) {
           initialVariations[variationType] = product.variations[variationType][0];
         }
@@ -25,9 +84,9 @@ const ProductDetailPage = ({ product, onBack }) => {
   }, [product]);
 
   const handleVariationChange = (variationType, value) => {
-    setSelectedVariations(prev => ({
+    setSelectedVariations((prev) => ({
       ...prev,
-      [variationType]: value
+      [variationType]: value,
     }));
   };
 
@@ -35,7 +94,7 @@ const ProductDetailPage = ({ product, onBack }) => {
     setAddingToCart(true);
     try {
       await addToCart(product.id, quantity, selectedVariations);
-      // Show success message or feedback
+      // Optional: success feedback
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {
@@ -50,6 +109,15 @@ const ProductDetailPage = ({ product, onBack }) => {
   };
 
   const getCurrentPrice = () => {
+    // Show matched variant price if available
+    if (product.variants && product.variants.length > 0) {
+      const matchedVariant = product.variants.find((variant) =>
+        Object.entries(selectedVariations).every(
+          ([key, value]) => variant.variation_values?.[key] === value
+        )
+      );
+      if (matchedVariant) return matchedVariant.price;
+    }
     return product.discountPrice || product.price;
   };
 
@@ -60,19 +128,19 @@ const ProductDetailPage = ({ product, onBack }) => {
     return 0;
   };
 
-  const currentItemCount = getItemCount(product.id, selectedVariations);
-  const isOutOfStock = product.status === PRODUCT_STATUS.OUT_OF_STOCK;
-  const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
-  const isAvailable = product.status === PRODUCT_STATUS.AVAILABLE;
-
   const normalizeImagePath = (path) => {
     // Remove extra slashes and ensure exactly one /storage/
-    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
+    return '/storage/' + path.split('/').filter((p) => p && p !== 'storage').join('/');
   };
 
   const normalizedPath = normalizeImagePath(product.images[0]);
   const src = `http://127.0.0.1:8000${normalizedPath}`;
-  const srcSelected = `http://127.0.0.1:8000${normalizeImagePath(product.images[selectedImage])}`;
+  const selectedSrc = `http://127.0.0.1:8000${normalizeImagePath(product.images[selectedImage])}`;
+
+  const currentItemCount = getItemCount(product.id, selectedVariations);
+  const isOutOfStock = product.status === PRODUCT_STATUS.OUT_OF_STOCK;
+  const isDiscontinued = product.status === PRODUCT_STATUS.DISCONTINUED;
+  const isAvailable = product.status === PRODUCT_STATUS.AVAILABLE;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -98,11 +166,12 @@ const ProductDetailPage = ({ product, onBack }) => {
             <div className="aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
               {product.images && product.images.length > 0 ? (
                 <img
-                  src={srcSelected || src}
+                  src={selectedSrc || src}
                   alt={product.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect width="400" height="400" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="16"%3ENo Image Available%3C/text%3E%3C/svg%3E';
+                    e.target.src =
+                      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect width="400" height="400" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="16"%3ENo Image Available%3C/text%3E%3C/svg%3E';
                   }}
                 />
               ) : (
@@ -114,7 +183,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                 </div>
               )}
             </div>
-            
+
             {/* Thumbnail Gallery */}
             {product.images && product.images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
@@ -127,11 +196,12 @@ const ProductDetailPage = ({ product, onBack }) => {
                     }`}
                   >
                     <img
-                      src={`http://127.0.0.1:8000${normalizeImagePath(image)}`}
+                      src={`http://127.0.0.1:8000${image}`}
                       alt={`${product.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="8"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        e.target.src =
+                          'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" fill="%23f3f4f6"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-family="Arial, sans-serif" font-size="8"%3ENo Image%3C/text%3E%3C/svg%3E';
                       }}
                     />
                   </button>
@@ -174,39 +244,29 @@ const ProductDetailPage = ({ product, onBack }) => {
                   </>
                 )}
               </div>
-              {isOutOfStock && (
-                <p className="text-red-600 font-medium">Out of Stock</p>
-              )}
-              {isDiscontinued && (
-                <p className="text-gray-600 font-medium">Discontinued</p>
-              )}
+              {isOutOfStock && <p className="text-red-600 font-medium">Out of Stock</p>}
+              {isDiscontinued && <p className="text-gray-600 font-medium">Discontinued</p>}
             </div>
 
             {/* Variations */}
             {product.variations && Object.keys(product.variations).length > 0 && (
               <div className="space-y-4">
                 {Object.entries(product.variations).map(([variationType, options]) => (
-                  <div key={variationType}>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2 capitalize">
-                      {variationType}: {selectedVariations[variationType]}
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {options.map((option, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleVariationChange(variationType, option)}
-                          className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                            selectedVariations[variationType] === option
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <VariationSelector
+                    key={variationType}
+                    variationType={variationType}
+                    options={options}
+                    selectedValue={selectedVariations[variationType]}
+                    onChange={handleVariationChange}
+                  />
                 ))}
+              </div>
+            )}
+
+            {/* Show selected variant details */}
+            {product.variants && (
+              <div className="mt-4 border p-3 rounded-md bg-gray-50">
+                <VariantDetails variants={product.variants} selectedVariations={selectedVariations} />
               </div>
             )}
 
@@ -235,9 +295,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                     </button>
                   </div>
                   {currentItemCount > 0 && (
-                    <span className="text-sm text-gray-600">
-                      ({currentItemCount} in cart)
-                    </span>
+                    <span className="text-sm text-gray-600">({currentItemCount} in cart)</span>
                   )}
                 </div>
 
@@ -254,7 +312,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                     )}
                     {addingToCart ? 'Adding...' : 'Add to Cart'}
                   </button>
-                  
+
                   <button
                     onClick={() => setIsFavorite(!isFavorite)}
                     className={`p-3 border rounded-lg transition-colors ${
@@ -265,7 +323,7 @@ const ProductDetailPage = ({ product, onBack }) => {
                   >
                     <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
                   </button>
-                  
+
                   <button className="p-3 border border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 transition-colors">
                     <Share2 size={20} />
                   </button>
@@ -284,22 +342,10 @@ const ProductDetailPage = ({ product, onBack }) => {
             {/* Product Details */}
             <div className="border-t border-gray-200 pt-6 space-y-4">
               <h3 className="text-lg font-medium text-gray-900">Product Details</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">SKU:</span>
-                  <span className="ml-2 text-gray-900">{product.sku || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Category:</span>
-                  <span className="ml-2 text-gray-900">{product.category || 'General'}</span>
-                </div>
+              <div className="grid grid-cols-1 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Stock:</span>
                   <span className="ml-2 text-gray-900">{product.stock || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Weight:</span>
-                  <span className="ml-2 text-gray-900">{product.weight || 'N/A'}</span>
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { Plus, Minus, Trash2 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 
 const CartItem = ({ item }) => {
@@ -41,6 +41,14 @@ const CartItem = ({ item }) => {
     return getItemPrice() * item.quantity;
   };
 
+  const normalizeImagePath = (path) => {
+    // Remove extra slashes and ensure exactly one /storage/
+    return '/storage/' + path.split('/').filter(p => p && p !== 'storage').join('/');
+  };
+
+  const normalizedPath = normalizeImagePath(item.product.images[0]);
+  const src = `http://127.0.0.1:8000${normalizedPath}`;
+
   return (
     <div className={`p-6 transition-opacity ${isRemoving ? 'opacity-50' : ''}`}>
       <div className="flex gap-4">
@@ -48,7 +56,7 @@ const CartItem = ({ item }) => {
         <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
           {item.product?.images && item.product.images.length > 0 ? (
             <img
-              src={`http://127.0.0.1:8000/storage/${item.product.images[0].url}`}
+              src={src}
               alt={item.product?.title || 'Product'}
               className="w-full h-full object-cover"
               onError={(e) => {

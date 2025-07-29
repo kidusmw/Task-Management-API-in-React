@@ -14,11 +14,18 @@ class CartApiService {
   }
 
   async getCart() {
-    const res = await fetch(this.baseUrl, {
+    const res = await fetch(`${this.baseUrl}/summary`, {
       headers: this.getAuthHeaders()
     });
     if (!res.ok) throw new Error('Failed to fetch cart');
-    return await res.json();
+    const data = await res.json();
+
+    // Map backend field names to frontend expectations
+    return {
+      items: data.items || [],
+      total_items: data.total_quantity || 0,
+      total_amount: data.total_price || 0
+    };
   }
 
   async addToCart(productId, quantity = 1, selectedVariations = {}) {

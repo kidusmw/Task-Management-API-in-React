@@ -28,6 +28,7 @@ export const CartProvider = ({ children }) => {
     setError(null);
     try {
       const cartData = await cartApi.getCart();
+      console.log('Cart data loaded:', cartData);
       setCartItems(cartData.items || []);
       setCartCount(cartData.total_items || 0);
       setCartTotal(cartData.total_amount || 0);
