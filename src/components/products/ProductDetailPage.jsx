@@ -201,6 +201,61 @@ const ProductDetailPage = ({ product, onBack }) => {
               </div>
             )}
 
+            {/* Product Variants */}
+            {product.variants && product.variants.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900">Available Variants</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {product.variants.map((variant, index) => (
+                    <div
+                      key={variant.id || index}
+                      className="border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-900">
+                            {variant.color} / {variant.size}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            #{variant.id || `variant-${index + 1}`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-semibold text-blue-600">
+                            {formatPrice(variant.price)}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            Qty: {variant.quantity}
+                          </span>
+                        </div>
+
+                        {variant.quantity > 0 ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            In Stock
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            Out of Stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* JSON Debug Display */}
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900 mb-2">
+                    View Raw Variants JSON
+                  </summary>
+                  <pre className="bg-gray-100 p-4 rounded-lg text-xs overflow-x-auto">
+                    {JSON.stringify(product.variants, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            )}
+
             {/* Quantity and Add to Cart */}
             {isAvailable && (
               <div className="space-y-4">
