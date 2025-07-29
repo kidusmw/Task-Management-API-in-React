@@ -144,6 +144,51 @@ const ProductDetails = ({ product, onClose, onEdit }) => {
               </div>
             </div>
 
+            {/* Product Variants */}
+            {product.variants && product.variants.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product Variants ({product.variants.length})
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {product.variants.map((variant, index) => (
+                    <div
+                      key={variant.id || index}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-md border"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-gray-900">
+                          {variant.color} / {variant.size}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          Price: {formatPrice(variant.price)} • Qty: {variant.quantity}
+                        </div>
+                      </div>
+                      {variant.quantity > 0 ? (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          In Stock
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Out of Stock
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* JSON Debug Display */}
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900">
+                    View Raw JSON
+                  </summary>
+                  <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto mt-1 max-h-32 overflow-y-auto">
+                    {JSON.stringify(product.variants, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-4">
               <button
                 onClick={onClose}

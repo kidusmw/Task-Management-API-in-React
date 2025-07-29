@@ -34,15 +34,28 @@ const ProductManagement = ({ onViewDetails: externalOnViewDetails }) => {
   const handleFormSubmit = async (productData) => {
     setFormLoading(true);
     try {
+      console.log('🔄 [ProductManagement] Form submission started:', {
+        action: editingProduct ? 'update' : 'create',
+        productId: editingProduct?.id,
+        productTitle: editingProduct?.title || 'New Product'
+      });
+
       if (editingProduct) {
-        await updateProduct(editingProduct.id, productData);
+        const result = await updateProduct(editingProduct.id, productData);
+        console.log('✅ [ProductManagement] Product updated successfully:', result?.id);
       } else {
-        await createProduct(productData);
+        const result = await createProduct(productData);
+        console.log('✅ [ProductManagement] Product created successfully:', result?.id);
       }
       setShowForm(false);
       setEditingProduct(null);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('❌ [ProductManagement] Form submission failed:', {
+        action: editingProduct ? 'update' : 'create',
+        productId: editingProduct?.id,
+        error: error.message,
+        stack: error.stack
+      });
     } finally {
       setFormLoading(false);
     }
@@ -55,17 +68,30 @@ const ProductManagement = ({ onViewDetails: externalOnViewDetails }) => {
 
   const handleDeleteProduct = async (id) => {
     try {
+      console.log('🗑️ [ProductManagement] Delete operation started for product ID:', id);
       await deleteProduct(id);
+      console.log('✅ [ProductManagement] Product deleted successfully:', id);
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.error('❌ [ProductManagement] Delete operation failed:', {
+        productId: id,
+        error: error.message,
+        stack: error.stack
+      });
     }
   };
 
   const handleStatusChange = async (id, status) => {
     try {
+      console.log('🔄 [ProductManagement] Status change started:', { productId: id, newStatus: status });
       await patchProduct(id, { status });
+      console.log('✅ [ProductManagement] Status updated successfully:', { productId: id, status });
     } catch (error) {
-      console.error('Error updating product status:', error);
+      console.error('❌ [ProductManagement] Status update failed:', {
+        productId: id,
+        newStatus: status,
+        error: error.message,
+        stack: error.stack
+      });
     }
   };
 

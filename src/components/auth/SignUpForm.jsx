@@ -34,13 +34,29 @@ const SignupForm = ({ onSwitchToLogin }) => {
     }
 
     try {
+      console.log('📝 [SignUpForm] Signup attempt started:', {
+        name: formData.name,
+        email: formData.email,
+        timestamp: new Date().toISOString()
+      });
       await signup({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         password_confirmation: formData.confirmPassword,
       });
+      console.log('✅ [SignUpForm] Signup successful for:', {
+        name: formData.name,
+        email: formData.email
+      });
     } catch (err) {
+      console.error('❌ [SignUpForm] Signup failed:', {
+        name: formData.name,
+        email: formData.email,
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
       setError(err.message);
     } finally {
       setLoading(false);

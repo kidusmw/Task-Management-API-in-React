@@ -1,4 +1,4 @@
-import { Plus, Save, X, Palette } from 'lucide-react';
+import { Palette, Plus, Save, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { PRODUCT_STATUS, PRODUCT_STATUS_LABELS } from '../../types/product';
 
@@ -13,10 +13,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     images: [],
     variations: {},
     variants: [],
-    sku: '',
-    category: '',
     stock: '',
-    weight: '',
   });
 
   useEffect(() => {
@@ -30,10 +27,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
         images: product.images || [],
         variations: product.variations || {},
         variants: product.variants || [],
-        sku: product.sku || '',
-        category: product.category || '',
         stock: product.stock ? product.stock.toString() : '',
-        weight: product.weight || '',
       });
     }
   }, [product]);
@@ -48,12 +42,20 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
       discountPrice,
       images,
       variations,
-      sku,
-      category,
       stock,
-      weight,
       status,
+      variants,
     } = formData;
+
+    // Transform variants to backend format
+    const transformedVariants = variants.map(v => ({
+      variation_values: {
+        color: v.color,
+        size: v.size,
+      },
+      price: parseFloat(v.price),
+      stock: parseInt(v.quantity, 10),
+    }));
 
     // Use FormData for file + text
     const data = new FormData();
@@ -61,15 +63,12 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     data.append('description', description.trim());
     data.append('price', parseFloat(price));
     if (discountPrice) data.append('discountPrice', parseFloat(discountPrice));
-    data.append('sku', sku.trim());
-    data.append('category', category.trim());
-    data.append('stock', stock ? parseInt(stock) : '');
-    data.append('weight', weight.trim());
+    data.append('stock', stock ? parseInt(stock, 10) : '');
     data.append('status', status);
     data.append('variations', JSON.stringify(variations)); // serialize variations
-    data.append('variants', JSON.stringify(formData.variants)); // serialize variants
+    data.append('variants', JSON.stringify(transformedVariants)); // serialize transformed variants
 
-    // Add images
+    // Add images files
     images.forEach((img) => {
       if (img.file) {
         data.append('images[]', img.file);
@@ -83,11 +82,10 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     }
   };
 
-
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 5;
-    
+
     if (formData.images.length + files.length > maxFiles) {
       alert(`You can only upload up to ${maxFiles} images`);
       return;
@@ -191,7 +189,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
   const updateVariant = (variantId, field, value) => {
     setFormData(prev => ({
       ...prev,
-      variants: prev.variants.map(variant => 
+      variants: prev.variants.map(variant =>
         variant.id === variantId ? { ...variant, [field]: value } : variant
       )
     }));
@@ -270,7 +268,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                   onChange={handleImageUpload}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                
+
                 {formData.images.length > 0 && (
                   <div className="mt-3">
                     <div className="grid grid-cols-2 gap-2">
@@ -336,65 +334,21 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU
-                  </label>
-                  <input
-                    type="text"
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Product SKU"
-                  />
-                </div>
 
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Product category"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
-                  </label>
-                  <input
-                    type="number"
-                    id="stock"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Available quantity"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
-                    Weight
-                  </label>
-                  <input
-                    type="text"
-                    id="weight"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 1.5 kg"
-                  />
-                </div>
+              <div>
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Quantity
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Available quantity"
+                  min="0"
+                />
               </div>
 
               {/* Product Variants */}
@@ -476,7 +430,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
             </form>
           </div>
         </div>
-        
+
         {/* Variants Side Panel */}
         {showVariantsPanel && (
           <div className="w-96 border-l border-gray-200 bg-gray-50 overflow-y-auto">
@@ -491,7 +445,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                   <X size={16} />
                 </button>
               </div>
-              
+
               <button
                 type="button"
                 onClick={addVariant}
@@ -500,7 +454,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                 <Plus size={16} />
                 Add New Variant
               </button>
-              
+
               <div className="space-y-4">
                 {formData.variants.map((variant) => (
                   <div key={variant.id} className="bg-white p-4 rounded-lg border border-gray-200">
@@ -514,7 +468,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                         Remove
                       </button>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
@@ -528,7 +482,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                           ))}
                         </select>
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Size</label>
                         <select
@@ -541,7 +495,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                           ))}
                         </select>
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Price</label>
                         <input
@@ -554,7 +508,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                           placeholder="0.00"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
                         <input
@@ -569,7 +523,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                     </div>
                   </div>
                 ))}
-                
+
                 {formData.variants.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <Palette size={48} className="mx-auto mb-2 text-gray-300" />

@@ -23,9 +23,21 @@ const LoginForm = ({ onSwitchToSignup }) => {
     setError('');
 
     try {
+      console.log('🔐 [LoginForm] Login attempt started:', {
+        email: formData.email,
+        timestamp: new Date().toISOString()
+      });
       await login(formData);
+      console.log('✅ [LoginForm] Login successful for email:', formData.email);
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const errorMessage = err.message || 'Login failed';
+      console.error('❌ [LoginForm] Login failed:', {
+        email: formData.email,
+        error: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
