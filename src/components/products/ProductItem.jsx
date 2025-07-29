@@ -18,21 +18,45 @@ const ProductItem = ({
     if (window.confirm('Are you sure you want to delete this product?')) {
       setIsDeleting(true);
       try {
+        console.log('🗑️ [ProductItem] Delete confirmation received for:', {
+          productId: product.id,
+          productTitle: product.title
+        });
         await onDelete(product.id);
+        console.log('✅ [ProductItem] Product deleted successfully:', product.id);
       } catch (error) {
-        console.error('Error deleting product:', error);
+        console.error('❌ [ProductItem] Delete operation failed:', {
+          productId: product.id,
+          productTitle: product.title,
+          error: error.message,
+          stack: error.stack
+        });
       } finally {
         setIsDeleting(false);
       }
+    } else {
+      console.log('❌ [ProductItem] Delete cancelled by user for product:', product.id);
     }
   };
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
     try {
+      console.log('🛍️ [ProductItem] Adding to cart:', {
+        productId: product.id,
+        productTitle: product.title,
+        productPrice: product.discountPrice || product.price,
+        quantity: 1
+      });
       await addToCart(product.id, 1);
+      console.log('✅ [ProductItem] Successfully added to cart:', product.id);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('❌ [ProductItem] Failed to add to cart:', {
+        productId: product.id,
+        productTitle: product.title,
+        error: error.message,
+        stack: error.stack
+      });
     } finally {
       setAddingToCart(false);
     }
