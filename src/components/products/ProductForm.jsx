@@ -76,9 +76,35 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     });
 
     try {
+      console.log('📤 [ProductForm] Submitting product form:', {
+        action: product ? 'update' : 'create',
+        productId: product?.id,
+        title,
+        price,
+        discountPrice,
+        stock,
+        status,
+        imagesCount: images.length,
+        variantsCount: formData.variants.length,
+        hasVariations: Object.keys(variations).length > 0
+      });
+
       await onSubmit(data);
+      console.log('✅ [ProductForm] Form submitted successfully');
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error('❌ [ProductForm] Submit error:', {
+        error: err.message,
+        stack: err.stack,
+        formData: {
+          title,
+          price,
+          discountPrice,
+          stock,
+          status,
+          imagesCount: images.length,
+          variantsCount: formData.variants.length
+        }
+      });
     }
   };
 
