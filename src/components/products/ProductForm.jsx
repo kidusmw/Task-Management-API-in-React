@@ -13,10 +13,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     images: [],
     variations: {},
     variants: [],
-    sku: '',
-    category: '',
     stock: '',
-    weight: '',
   });
 
   useEffect(() => {
@@ -30,10 +27,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
         images: product.images || [],
         variations: product.variations || {},
         variants: product.variants || [],
-        sku: product.sku || '',
-        category: product.category || '',
         stock: product.stock ? product.stock.toString() : '',
-        weight: product.weight || '',
       });
     }
   }, [product]);
@@ -48,10 +42,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
       discountPrice,
       images,
       variations,
-      sku,
-      category,
       stock,
-      weight,
       status,
     } = formData;
 
@@ -61,10 +52,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
     data.append('description', description.trim());
     data.append('price', parseFloat(price));
     if (discountPrice) data.append('discountPrice', parseFloat(discountPrice));
-    data.append('sku', sku.trim());
-    data.append('category', category.trim());
     data.append('stock', stock ? parseInt(stock) : '');
-    data.append('weight', weight.trim());
     data.append('status', status);
     data.append('variations', JSON.stringify(variations)); // serialize variations
     data.append('variants', JSON.stringify(formData.variants)); // serialize variants
@@ -336,65 +324,21 @@ const ProductForm = ({ product, onSubmit, onCancel, isLoading = false }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
-                    SKU
-                  </label>
-                  <input
-                    type="text"
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Product SKU"
-                  />
-                </div>
 
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Product category"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock Quantity
-                  </label>
-                  <input
-                    type="number"
-                    id="stock"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Available quantity"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-1">
-                    Weight
-                  </label>
-                  <input
-                    type="text"
-                    id="weight"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 1.5 kg"
-                  />
-                </div>
+              <div>
+                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Quantity
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Available quantity"
+                  min="0"
+                />
               </div>
 
               {/* Product Variants */}
